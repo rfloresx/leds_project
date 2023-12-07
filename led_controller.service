@@ -1,0 +1,11 @@
+[Unit]
+Description=Led Controller
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/home/rbflo/env/bin/python3 /home/rbflo/leds_project/led_controler.py -f /home/rbflo/leds_project/config.json
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

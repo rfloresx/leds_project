@@ -1,0 +1,68 @@
+{
+    "NeoPixels" : [
+        {
+            "name" : "LED_A",
+            "class": "NeoPixelController",
+            "led_pin" : {
+                "class": "PIN",
+                "id": 12
+            },
+            "relay_pin" : 17,
+            "leds_count" : 250
+        },
+        {
+            "name":"LED_B",
+            "class": "NeoPixelController",
+            "led_pin" : {
+                "class": "PIN",
+                "id": 21
+            },
+            "relay_pin" : 27,
+            "leds_count" : 250
+        }
+    ],
+    "Simulations" : [
+        {
+            "class":"Simulator",
+            "name" :"SIM_A", 
+            "enable":true,
+            "sim": {
+                "class" : "FireSim",
+                "pixels" : {
+                    "class" : "ref",
+                    "name" : "LED_A"
+                },
+                "palette" : {
+                    "class" : "Palette",
+                    "colors" : [[0,0,0], [250,250,250]],
+                    "color_correction" : [255, 255, 255],
+                    "res": 255
+                },
+                "cold_down":-3,
+                "sparks":1,
+                "min_heat":15
+            }
+        },
+        {
+            "class":"Simulator",
+            "name" :"SIM_B",
+            "enable":true,
+            "sim":        {
+                "class" : "FireSim",
+                "pixels" : {
+                    "class" : "ref",
+                    "name" : "LED_B"
+                },
+                "palette" : {
+                    "class" : "Palette",
+                    "colors" : [[0,0,0], [250,250,250]],
+                    "color_correction" : [255, 255, 255],
+                    "res": 255
+                },
+                "cold_down":-3,
+                "sparks":1,
+                "min_heat":15
+            }
+        }
+    ]
+}

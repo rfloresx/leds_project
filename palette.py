@@ -22,7 +22,20 @@ def hexlst_to_rgblst(lst):
         items.append(hex_to_rgb(l))
     return items
 
-
+def load_colors(colors):
+    if isinstance(colors, str):
+        color = hex_to_rgb(colors)
+        return color
+    elif isinstance(colors, list):
+        if len(colors) == 3 and not isinstance(colors[0], (int, float, complex)):
+            return (colors[0], colors[1], colors[2])
+        else:
+            tmp = colors
+            colors = []
+            for n in tmp:
+                colors.append(load_colors(n))
+            return colors
+    return colors
 
 class Palette:
     GAMMA = [
@@ -44,10 +57,17 @@ class Palette:
         215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255
     ]
 
-    def __init__(self, colors, res = 100000, colors_map=None, color_correction = (255, 255, 255)):
+    def __init__(self, colors, res = 100000, colors_map=None, color_correction = (255, 255, 255), **kwargs):
+        colors = load_colors(colors)
+        if isinstance(colors, (tuple)):
+            colors = [(0,0,0), colors]
+
+        color_correction = load_colors(color_correction)
+    
         if colors_map is None:
             n = len(colors)
             colors_map = np.linspace(0,res,n, endpoint=True)
+
         self.res = res
         self.xp = colors_map
         self.fp = np.array(colors, dtype =np.int16)
@@ -57,6 +77,7 @@ class Palette:
         self.gama_val = np.array(Palette.GAMMA, dtype = np.int16) 
         self.gama_x = np.linspace(0, len(self.gama_val), len(self.gama_val), endpoint=False)
         self.correction = color_correction
+                                
 
     def set_res(self, res):
         self.xp = np.linspace(0,res,len(self.fp), endpoint=True)
