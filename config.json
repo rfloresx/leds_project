@@ -1,4 +1,147 @@
 {
+    "name" : "",
+    "info" :"",
+    "config": [
+        {
+            "class" : "LedController",
+            "name" : "STRIP_A",
+            "refresh_rate" : 60,
+            "gpio" : 18,
+            "led_count" : 50,
+            "brightness" : 255,
+            "strip_type" : "RGB"
+        },
+        {
+            "class": "LedStripSection",
+            "name" : "STRIP_A_0_10",
+            "led_strip" : {
+                "class" : "ref",
+                "name" : "STRIP_A"
+            },
+            "_slice" : {
+                "class" : "slice",
+                "v" : [0, 10, 1]
+            }
+        },
+        {
+            "class": "LedStripSection",
+            "name": "STRIP_A_10_20",
+            "led_strip" : {
+                "class" : "ref",
+                "name" : "STRIP_A"
+            },
+            "_slice" : {
+                "class" : "slice",
+                "v" : [10, 20, 1]
+            }
+        },
+        {
+            "class" : "Palette",
+            "name" : "WHITE",
+            "colors" : [[0,0,0], [250,250,250]],
+            "color_correction" : [255, 255, 255],
+            "res": 255
+        },
+        {
+            "class" : "Palette",
+            "name" : "ALL",
+            "colors" : [
+                [255,0,0],
+                [255,255,0],
+                [0,255,0],
+                [0,255,255],
+                [0,0,255],
+                [255,0,255],
+                [255,0,0]
+            ],
+            "color_correction" : [255, 120, 120],
+            "res": 255
+        },
+        {
+            "class" : "Simulator",
+            "name" : "Spraks",
+            "enable" : true, 
+            "sim" : {
+                "class" : "FireSim",
+                "pixels" : {
+                    "class" : "ref",
+                    "name" : "STRIP_A_0_10"
+                },
+                "palette" : {
+                    "class" : "ref",
+                    "name" : "WHITE"
+                },
+                "min_heat" : 100,
+                "max_heat" : 255,
+                "cold_down": -30,
+                "sparks" : 3,
+                "spark" : 255
+            },
+            "refresh_rate":5
+        },
+        {
+            "class" : "Simulator",
+            "name" : "Roll",
+            "enable" : true, 
+            "sim" : {
+                "class" : "RollSim",
+                "pixels" : {
+                    "class" : "ref",
+                    "name" : "STRIP_A_10_20"
+                },
+                "palette" : {
+                    "class" : "ref",
+                    "name" : "ALL"
+                },
+                "min_heat" : 0,
+                "max_heat" : 255,
+                "cold_down": -3,
+                "sparks" : 3,
+                "spark" : 255
+            },
+            "refresh_rate":60
+        }
+    ],
+    "examples" : [
+        {
+            "class" : "Simulator",
+            "name":"SIM_NAME",
+            "enable" : true,
+            "sim" : {
+                "class": "ref",
+                "name" : "LedSim_name"
+            }
+        },
+        {
+            "class": "SimBase",
+            "pixels" : "",
+            "palette": "",
+            "leds_count":""
+        },
+        {
+            "class":"HeatSim",
+            "sub_class":"SimBase",
+            "min_heat":0,
+            "max_heat":255
+        },
+        {
+            "class":"FireSime",
+            "sub_class":"HeatSim",
+            "cold_down" : 0,
+            "sparks" : 3,
+            "spark" : 255
+        },
+        {
+            "class" : "RollSim",
+            "sub_class":"HeatSim",
+            "speed": 1
+        },
+        {
+            "class":"FadeSim",
+            "sub_class":"HeatSim",
+            "color": "color"
+        }
+    ],
     "NeoPixels" : [
         {
             "name" : "LED_A",
@@ -15,7 +158,7 @@
             "class": "NeoPixelController",
             "led_pin" : {
                 "class": "PIN",
-                "id": 21
+                "id": 13
             },
             "relay_pin" : 27,
             "leds_count" : 250

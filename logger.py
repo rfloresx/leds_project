@@ -1,5 +1,6 @@
 import logging
 from systemd.journal import JournalHandler
+import sys
 
 # log = logging.getLogger('led_conn')
 # log.addHandler(JournalHandler())
@@ -18,6 +19,12 @@ class Logger(object):
         self.log = logging.getLogger('led_conn')
         self.log.addHandler(JournalHandler())
         self.log.setLevel(logging.INFO)
+
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.log.addHandler(handler)
         self.__initialized = True
 
 def debug(msg, *args, **kwargs):

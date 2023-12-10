@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 
 def hex_to_rgb(hex):
     h = hex.lstrip("#")
@@ -26,8 +26,8 @@ def load_colors(colors):
     if isinstance(colors, str):
         color = hex_to_rgb(colors)
         return color
-    elif isinstance(colors, list):
-        if len(colors) == 3 and not isinstance(colors[0], (int, float, complex)):
+    elif isinstance(colors, (list,tuple)):
+        if len(colors) == 3 and isinstance(colors[0], (int, float, complex)):
             return (colors[0], colors[1], colors[2])
         else:
             tmp = colors
@@ -57,37 +57,36 @@ class Palette:
         215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255
     ]
 
-    def __init__(self, colors, res = 100000, colors_map=None, color_correction = (255, 255, 255), **kwargs):
+    def __init__(self, colors, res = 65536, colors_map=None, color_correction = (255, 255, 255), **kwargs):
         colors = load_colors(colors)
         if isinstance(colors, (tuple)):
             colors = [(0,0,0), colors]
 
         color_correction = load_colors(color_correction)
-    
+
         if colors_map is None:
             n = len(colors)
             colors_map = np.linspace(0,res,n, endpoint=True)
 
         self.res = res
-        self.xp = colors_map
-        self.fp = np.array(colors, dtype =np.int16)
-        self.rp = self.fp[:,0]
-        self.gp = self.fp[:,1]
-        self.bp = self.fp[:,2]
-        self.gama_val = np.array(Palette.GAMMA, dtype = np.int16) 
+        self.colors_map = colors_map
+        self.colors = np.array(colors, dtype =np.int16)
+        self.colors_red_val = self.colors[:,0]
+        self.colors_green_val = self.colors[:,1]
+        self.colors_blue_val = self.colors[:,2]
+        self.gama_val = np.array(Palette.GAMMA, dtype = np.int16)
         self.gama_x = np.linspace(0, len(self.gama_val), len(self.gama_val), endpoint=False)
         self.correction = color_correction
-                                
 
     def set_res(self, res):
-        self.xp = np.linspace(0,res,len(self.fp), endpoint=True)
+        self.colors_map = np.linspace(0,res,len(self.fp), endpoint=True)
 
     def interp_ext(self, data):
-        val_r = np.interp(data, self.xp, self.rp)
-        val_g = np.interp(data, self.xp, self.gp)
-        val_b = np.interp(data, self.xp, self.bp)
+        val_r = np.interp(data, self.colors_map, self.colors_red_val)
+        val_g = np.interp(data, self.colors_map, self.colors_green_val)
+        val_b = np.interp(data, self.colors_map, self.colors_blue_val)
         return (val_r, val_g, val_b)
-    
+
     def correct_color(self, data):
         data = np.array(data)
         data = (data * self.correction)/255
@@ -96,7 +95,7 @@ class Palette:
 
     def apply_gammas(self, data):
         return np.interp(data, self.gama_x, self.gama_val).astype(np.int16)
-    
+
     def interp(self, data):
         return np.column_stack(self.interp_ext(data)).astype(np.int16)
 
@@ -149,7 +148,40 @@ class Palettes:
         "#ffce00",
         "#ffe808"
     ])
+
+
+def build_color(self, value, **kwargs):
+    colors_map = {
+        "BLACK":"#000000",
+        "WHITE":"#FFFFFF",
+        "RED":"#FF0000",
+        "GREEN":"#00FF00",
+        "BLUE":"#0000FF",
+        "ORANGE":"#FF8000",
+        "YELLOW":"#FFFF00",
+        "LIME":"#80FF00",
+        "AQUA":"#00FF80",
+        "CYAN":"#00FFFF",
+        "OCEAN":"#0080FF",
+        "VIOLET":"#8000FF",
+        "MAGENTA":"#FF00FF",
+        "RASPBERRY":"#FF0080"
+    }
     
+    if isinstance(value, str):
+        value = value.upper()
+        if value in colors_map:
+            value = colors_map[value]
+        return hex_to_rgb(value)
+    else:
+        return (value[0], value[1], value[2])
+
+
+
+CLASS_LIST = {
+    "Palette" : Palette,
+    "Color" : build_color
+}
 
 def test():
     colors = [

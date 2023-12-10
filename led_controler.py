@@ -1,7 +1,3 @@
-import sys
-import board
-import neopixel
-import numpy as np
 import RPi.GPIO as GPIO
 
 import led_sim
@@ -11,127 +7,151 @@ import argparse
 import threading
 import multiprocessing as mp
 import json
-import types
 import time
+import datetime
 
 import logger
 
-def get_pin(id, **kwargs):
-    match id:
-        case 10:
-            return board.D10
-        case 12:
-            return board.D12
-        case 18:
-            return board.D18
-        case 21:
-            return board.D21
-        case _:
-            pass
-    return None
+import led_strip
+
+class LedController(led_strip.LedStrip):
+    def __init__(self, refresh_rate, name = "", relay_pin = None, **kwargs):
+        super().__init__(**kwargs)
+        self.lock = mp.Lock()
+        self.thread = None
+        self._stop = True
+        self.name = name
+        self.refresh_rate = refresh_rate
+        self.frame_time = 1/refresh_rate
+        self.relay_pin = relay_pin
+        if self.relay_pin is not None:
+            GPIO.setup(self.relay_pin, GPIO.OUT)
+        self.refs = set()
+        print("__init__")
+    
+    def _run(self):
+        while (self._stop == False):
+            start = datetime.datetime.now()
+            with self.lock:
+                led_strip.LedStrip.show(self)
+            end = datetime.datetime.now()
+            delta = (end - start).total_seconds()
+            sleep_time = self.frame_time - delta
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
+    def start(self):
+        if self.thread is None:
+            self._stop = False
+            self.thread = threading.Thread(target=self._run)
+            self.thread.start()
+
+    def stop(self):
+        self._stop = True
+        if self.thread is not None:
+            self.thread.join()
+            self.thread = None
+    
+    def __getitem__(self, pos):
+        with self.lock:
+            return super().__getitem__(pos)
+    
+    def __setitem__(self, pos, value):        
+        with self.lock:
+            return super().__setitem__(pos, value)
+    
+    def __len__(self):
+        with self.lock:
+            return len(self.strip)
+    
+    def fill(self, value):
+        with self.lock:
+            super().fill(value)
+    
+    def show(self):
+        pass
+
+    def setBrightness(self, brightness):
+        with self.lock:
+            return super().setBrightness(brightness)
+
+    def activate(self, owner):
+        print("activate")
+        self.refs.add(owner)
+        self.start()
+
+    def release(self, owner):
+        print("release")
+        self.refs.remove(owner)
+        if len(self.refs) == 0:
+            self.stop()
 
 class Simulator:
-    def __init__(self,  enable, sim, **kwargs):
+    def __init__(self,  enable, sim, name = "", refresh_rate = 15, **kwargs):
         self._stop = True
         self.thread = None
         self.enable = enable
         self.sim = sim
+        self.name = name
+        self.refresh_rate = refresh_rate
+        self.frame_time = 1/refresh_rate
 
     def _run(self):
         self._stop = False
 
         while (self._stop == False):
+            start = datetime.datetime.now()
             self.sim.update()
+            end = datetime.datetime.now()
+            delta = (end - start).total_seconds()
+            sleep_time = self.frame_time - delta
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
 
     def start(self):
         if self.thread == None:
-            logger.info("Starting Service")
+            logger.info(f"Starting {self.name}...")
             self.thread = threading.Thread(target = self._run)
             self.thread.start()
 
     def stop(self):
-        logger.info("stoping Service")
+        logger.info(f"stoping {self.name}...")
         self._stop = True
         if self.thread is not None:
             self.thread.join()
             self.thread = None
 
-class Message:
-    def __init__(self, msg, data):
-        self.msg = msg
-        self.data = data
-
-    def from_json(txt):
-        return json.loads(txt, object_hook=lambda d: types.SimpleNamespace(**d))
-  
-    def to_json(self):
-        return json.dumps(self)
-
-class LedControllerService:
-    def __init__(self, authkey):
-        self.address = ('localhost', 6000)
-        self.authkey = authkey
-        self.exit = False
-
-    def start(self):
-        self.exit = False
-        self.listener = mp.connection.Listener(self.address, authkey=authkey)
-
-        while self.exit == False:
-            with self.listener.accept() as conn:
-                logger.info(f"Connection accepted from {self.listener.last_accepted}")
-                while True:
-                    try:
-                        msg = conn.recv()
-                        rc = self.on_message(msg)
-                        if rc != 0:
-                            conn.close()
-                    except EOFError:
-                        logger.error(f"Connection lost")
-                        break
-        self.listener.close()
-
-    def on_message(self, msg):
-        match msg.cmd:
-            case 'close':
-                return -1
-            case 'stop':
-                self.exit = True
-                return -1
-            case _:
-                logger.info(f"{msg}")
-        return 0
-
-class LedControllerClient:
-    def __init__(self, authkey):
-        self.address = ('localhost', 6000)
-        self.authkey = authkey
-    
-    def start(self):
-        self.client = mp.connection.Client(self.address, authkey= self.authkey)
-        while True:
-            pass
+CLASS_LIST = {
+    "Simulator":Simulator,
+    "LedController":LedController
+}
 
 
 class LedsController:
-    CLS_LIST = {
-        "Simulator":Simulator,
-        "NeoPixelController" : led_sim.NeoPixelController,
-        "FireSim" : led_sim.FireSim,
-        "RollSim" : led_sim.RollSim,
-        "FadeSim" : led_sim.FadeSim,
-        "SparkSim" : led_sim.SparkSim,
-        "Palette" : palette.Palette,
-        "PIN" : get_pin,
+    CLASS_LIST = {
+        **CLASS_LIST,
+        **led_sim.CLASS_LIST, 
+        **led_strip.CLASS_LIST,
+        **palette.CLASS_LIST
     }
 
     def __init__(self):
-        self.pixels = {}
-        self.exit = False
+        self.name = ""
+        self.info = ""
 
-    def get_instance(self, name):
-        if name in self.pixels:
-            return self.pixels[name]
+        self.refs = {}
+        self.exit = False
+        self.sims = []
+        self.class_list = {
+            **LedsController.CLASS_LIST,
+            "ref" : self.get_instance
+        }
+        GPIO.setmode(GPIO.BCM)
+        
+    def get_instance(self, name, **kwargs):
+        if name in self.refs:
+            return self.refs[name]
         return None
 
     def load_class(self, config):
@@ -142,16 +162,17 @@ class LedsController:
             config[k] = self.proces_config(config[k])
 
         obj = None
-        if "ref" == cls_name:
-            return self.get_instance(name)
-        elif cls_name in LedsController.CLS_LIST:
-            obj = LedsController.CLS_LIST[cls_name](**config)
+        if cls_name in self.class_list:
+            obj = self.class_list[cls_name](**config)
 
+        ret_val = config
         if obj is not None:
-            obj.name = name
-            return obj
-        else:
-            return config
+            if name is not None:
+                obj.name = name
+            ret_val = obj
+        if name is not None:
+            self.refs[name] = ret_val
+        return ret_val
 
     def proces_config(self, config):
         if isinstance(config, list):
@@ -168,20 +189,26 @@ class LedsController:
         return config
 
     def load_config(self, config):
-        self.pixels = {}
-        for pixels in config["NeoPixels"]:
-            obj = self.load_class(pixels)
-            if obj.name is not None:
-                self.pixels[obj.name] = obj
-        self.sims = []
-        for sim in config["Simulations"]:
-            obj = self.load_class(sim)
-            self.sims.append(obj)
-            # if obj.name is not None:
+        for item in config["config"]:
+            obj = self.load_class(item)
+            if isinstance(obj, Simulator):
+                self.sims.append(obj)
+
+        # self.pixels = {}
+        # for pixels in config["NeoPixels"]:
+        #     obj = self.load_class(pixels)
+        #     if obj.name is not None:
+        #         self.pixels[obj.name] = obj
+        # self.sims = []
+        # for sim in config["Simulations"]:
+        #     obj = self.load_class(sim)
+        #     self.sims.append(obj)
+        #     # if obj.name is not None:
     
     def run(self):
+        print("RUN")
         self.exit = False
-        GPIO.setmode(GPIO.BCM)
+        
         for sim in self.sims:
             if sim.enable == True:
                 sim.start()
