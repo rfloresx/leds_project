@@ -52,13 +52,22 @@ class FireSim(HeatSim):
         self.cold_down = cold_down
         self.sparks = sparks
         self.spark = spark if spark is not None else self.max_heat
+        self.cold_down_val = 0
+        self.sparks_val = 0
 
     def update(self):
         super().update()
-        self.heat += self.cold_down
-        for n in range(self.sparks):
-            j = random.randint(0,self.leds_count-1)
-            self.heat[j] = self.spark
+        self.cold_down_val += self.cold_down
+        if self.cold_down_val > 1 or self.cold_down_val < -1:
+            self.heat += self.cold_down_val
+            self.cold_down_val = 0
+
+        self.sparks_val += self.sparks
+        if self.sparks_val > 1:
+            for n in range(int(self.sparks_val)):
+                j = random.randint(0,self.leds_count-1)
+                self.heat[j] = self.spark
+            self.sparks_val = 0
 
 class RollSim(HeatSim):
     def __init__(self, speed = 1, **kwargs):
@@ -71,6 +80,8 @@ class RollSim(HeatSim):
         self.current += self.speed
         if self.current > self.max_heat:
             self.current = self.min_heat
+        elif self.current < self.min_heat:
+            self.current = self.max_heat
         self.heat = np.roll(self.heat, 1)
         self.heat[0] = self.current
 

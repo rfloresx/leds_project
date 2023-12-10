@@ -91,7 +91,10 @@ class Simulator:
         self._stop = True
         self.thread = None
         self.enable = enable
-        self.sim = sim
+        if not isinstance(sim, list):
+            sim = [sim]
+        self.simulations = sim
+
         self.name = name
         self.refresh_rate = refresh_rate
         self.frame_time = 1/refresh_rate
@@ -101,7 +104,9 @@ class Simulator:
 
         while (self._stop == False):
             start = datetime.datetime.now()
-            self.sim.update()
+            for s in self.simulations:
+                s.update()
+
             end = datetime.datetime.now()
             delta = (end - start).total_seconds()
             sleep_time = self.frame_time - delta

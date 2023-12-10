@@ -20,7 +20,7 @@
             },
             "_slice" : {
                 "class" : "slice",
-                "v" : [0, 10, 1]
+                "v" : [0, 7, 1]
             }
         },
         {
@@ -32,13 +32,13 @@
             },
             "_slice" : {
                 "class" : "slice",
-                "v" : [10, 20, 1]
+                "v" : [7, 13, 1]
             }
         },
         {
             "class" : "Palette",
             "name" : "WHITE",
-            "colors" : [[0,0,0], [250,250,250]],
+            "colors" : [[0,0,0], [255,255,255]],
             "color_correction" : [255, 255, 255],
             "res": 255
         },
@@ -55,34 +55,61 @@
                 [255,0,0]
             ],
             "color_correction" : [255, 120, 120],
-            "res": 255
+            "res": 32
+        },
+        {
+            "class" : "Palette",
+            "name" : "RB",
+            "colors" : [
+                [255,0,0],
+                [255,0,255],
+                [0,0,255],
+                [255,0,255],
+                [255,0,0]
+            ],
+            "color_correction" : [255, 120, 120],
+            "res": 32
         },
         {
             "class" : "Simulator",
             "name" : "Spraks",
             "enable" : true, 
-            "sim" : {
-                "class" : "FireSim",
-                "pixels" : {
-                    "class" : "ref",
-                    "name" : "STRIP_A_0_10"
+            "sim" : [
+                {
+                    "class" : "FireSim",
+                    "pixels" : {
+                        "class" : "ref",
+                        "name" : "STRIP_A_0_10"
+                    },
+                    "palette" : {
+                        "class" : "ref",
+                        "name" : "WHITE"
+                    },
+                    "min_heat" : 10,
+                    "cold_down": -10,
+                    "sparks" : 0.5,
+                    "spark" : 255
                 },
-                "palette" : {
-                    "class" : "ref",
-                    "name" : "WHITE"
-                },
-                "min_heat" : 100,
-                "max_heat" : 255,
-                "cold_down": -30,
-                "sparks" : 3,
-                "spark" : 255
-            },
-            "refresh_rate":5
+                {
+                    "class" : "RollSim",
+                    "pixels" : {
+                        "class" : "ref",
+                        "name" : "STRIP_A_10_20"
+                    },
+                    "palette" : {
+                        "class" : "ref",
+                        "name" : "ALL"
+                    },
+                    "min_heat" : 0,
+                    "speed" : 1
+                }
+            ],
+            "refresh_rate":30
         },
         {
             "class" : "Simulator",
             "name" : "Roll",
-            "enable" : true, 
+            "enable" : false, 
             "sim" : {
                 "class" : "RollSim",
                 "pixels" : {
