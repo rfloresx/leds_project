@@ -1,0 +1,179 @@
+{
+    "name" : "Christmas Lights",
+    "info" : "",
+    "config" : [
+        {
+            "class" : "LedController",
+            "name" : "TREE",
+            "refresh_rate" : 60,
+            "gpio" : 12,
+            "led_count" : 50,
+            "brightness" : 255,
+            "strip_type" : "RGB"
+        },
+        {
+            "class": "LedStripSection",
+            "name" : "TREE_LIGHTS",
+            "led_strip" : {
+                "class" : "ref",
+                "name" : "TREE"
+            },
+            "_slice" : {
+                "class" : "slice",
+                "v" : [0, 250, 1]
+            }
+        },
+        {
+            "class": "LedStripSection",
+            "name" : "TREE_STAR_CENTER",
+            "led_strip" : {
+                "class" : "ref",
+                "name" : "TREE"
+            },
+            "_slice" : {
+                "class" : "slice",
+                "v" : [250, 257, 1]
+            }
+        },
+        {
+            "class": "LedStripSection",
+            "name" : "TREE_STAR_TIPS",
+            "led_strip" : {
+                "class" : "ref",
+                "name" : "TREE"
+            },
+            "_slice" : {
+                "class" : "slice",
+                "v" : [257, 263, 1]
+            }
+        },
+        {
+            "class" : "LedController",
+            "name" : "FRONT",
+            "refresh_rate" : 60,
+            "gpio" : 13,
+            "led_count" : 250,
+            "brightness" : 255,
+            "strip_type" : "RGB"
+        },
+        {
+            "class": "LedStripSection",
+            "name" : "FRONT_LIGHTS",
+            "led_strip" : {
+                "class" : "ref",
+                "name" : "TREE"
+            },
+            "_slice" : {
+                "class" : "slice",
+                "v" : [0, 250, 1]
+            }
+        },
+        {
+            "class" : "",
+            "info" : "Color Palettes"
+        },
+        {
+            "class" : "Palette",
+            "name" : "WHITE",
+            "colors" : [[0,0,0], [255,255,255]],
+            "color_correction" : [255, 255, 255],
+            "res": 255
+        },
+        {
+            "class" : "Palette",
+            "name" : "RAINBOW",
+            "colors" : [
+                [255,0,0],
+                [255,255,0],
+                [0,255,0],
+                [0,255,255],
+                [0,0,255],
+                [255,0,255],
+                [255,0,0]
+            ],
+            "color_correction" : [255, 120, 120],
+            "res": 32
+        },
+        {
+            "class":"",
+            "info":""
+        },
+        {
+            "class" : "Simulator",
+            "name" : "ChristmasTree",
+            "enable" : true,
+            "refresh_rate":30,
+            "sim" : [
+                {
+                    "class" : "FireSim",
+                    "name":"Sim_ChristmasTree_Lights",
+                    "pixels" : {
+                        "class" : "ref",
+                        "name" : "TREE_LIGHTS"
+                    },
+                    "palette" : {
+                        "class" : "ref",
+                        "name" : "WHITE"
+                    },
+                    "min_heat" : 10,
+                    "cold_down": -10,
+                    "sparks" : 0.5,
+                    "spark" : 255
+                },
+                {
+                    "class" : "FireSim",
+                    "name":"Sim_ChristmasTree_StartCenter",
+                    "pixels" : {
+                        "class" : "ref",
+                        "name" : "TREE_STAR_CENTER"
+                    },
+                    "palette" : {
+                        "class" : "ref",
+                        "name" : "WHITE"
+                    },
+                    "min_heat" : 10,
+                    "cold_down": -10,
+                    "sparks" : 0.5,
+                    "spark" : 255
+                },
+                {
+                    "class" : "RollSim",
+                    "name" : "Sim_ChristmasTree_StartTips",
+                    "pixels" : {
+                        "class" : "ref",
+                        "name" : "TREE_STAR_TIPS"
+                    },
+                    "palette" : {
+                        "class" : "ref",
+                        "name" : "ALL"
+                    },
+                    "min_heat" : 0,
+                    "speed" : 1
+                }
+            ]
+        },
+        {
+            "class" : "Simulator",
+            "name" : "FrontLights",
+            "enable" : true,
+            "refresh_rate":30,
+            "sim" : [
+                {
+                    "class" : "FireSim",
+                    "name":"Sim_FrontLights",
+                    "pixels" : {
+                        "class" : "ref",
+                        "name" : "FRONT_LIGHTS"
+                    },
+                    "palette" : {
+                        "class" : "ref",
+                        "name" : "WHITE"
+                    },
+                    "min_heat" : 10,
+                    "cold_down": -10,
+                    "sparks" : 3
+                }
+            ]
+        }
+    ]
+}

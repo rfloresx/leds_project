@@ -7,7 +7,7 @@
             "name" : "STRIP_A",
             "refresh_rate" : 60,
             "gpio" : 18,
-            "led_count" : 50,
+            "led_count" : 263,
             "brightness" : 255,
             "strip_type" : "RGB"
         },
@@ -20,7 +20,7 @@
             },
             "_slice" : {
                 "class" : "slice",
-                "v" : [0, 7, 1]
+                "v" : [250, 257, 1]
             }
         },
         {
@@ -32,7 +32,7 @@
             },
             "_slice" : {
                 "class" : "slice",
-                "v" : [7, 13, 1]
+                "v" : [257, 263, 1]
             }
         },
         {
