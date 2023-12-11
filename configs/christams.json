@@ -3,13 +3,22 @@
     "info" : "",
     "config" : [
         {
+            "class": "ThreadPool",
+            "name" : "LedStripPool"
+        },
+        {
             "class" : "LedController",
             "name" : "TREE",
             "refresh_rate" : 60,
             "gpio" : 12,
-            "led_count" : 50,
+            "led_count" : 263,
+            "relay_pin" : 17,
             "brightness" : 255,
-            "strip_type" : "RGB"
+            "strip_type" : "RGB",
+            "pool" : {
+                "class":"ref",
+                "name": "LedStripPool"
+            }
         },
         {
             "class": "LedStripSection",
@@ -52,16 +61,21 @@
             "name" : "FRONT",
             "refresh_rate" : 60,
             "gpio" : 13,
+            "relay_pin" : 27,
             "led_count" : 250,
             "brightness" : 255,
-            "strip_type" : "RGB"
+            "strip_type" : "RGB",
+            "pool" : {
+                "class":"ref",
+                "name": "LedStripPool"
+            }
         },
         {
             "class": "LedStripSection",
             "name" : "FRONT_LIGHTS",
             "led_strip" : {
                 "class" : "ref",
-                "name" : "TREE"
+                "name" : "FRONT"
             },
             "_slice" : {
                 "class" : "slice",
@@ -102,7 +116,7 @@
             "class" : "Simulator",
             "name" : "ChristmasTree",
             "enable" : true,
-            "refresh_rate":30,
+            "refresh_rate":60,
             "sim" : [
                 {
                     "class" : "FireSim",
@@ -115,9 +129,9 @@
                         "class" : "ref",
                         "name" : "WHITE"
                     },
-                    "min_heat" : 10,
+                    "min_heat" : 20,
                     "cold_down": -10,
-                    "sparks" : 0.5,
+                    "sparks" : 3,
                     "spark" : 255
                 },
                 {
@@ -145,7 +159,7 @@
                     },
                     "palette" : {
                         "class" : "ref",
-                        "name" : "ALL"
+                        "name" : "RAINBOW"
                     },
                     "min_heat" : 0,
                     "speed" : 1
@@ -156,7 +170,7 @@
             "class" : "Simulator",
             "name" : "FrontLights",
             "enable" : true,
-            "refresh_rate":30,
+            "refresh_rate":15,
             "sim" : [
                 {
                     "class" : "FireSim",
@@ -170,8 +184,8 @@
                         "name" : "WHITE"
                     },
                     "min_heat" : 10,
-                    "cold_down": -10,
-                    "sparks" : 3
+                    "cold_down": -3,
+                    "sparks" : 10
                 }
             ]
         }

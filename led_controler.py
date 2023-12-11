@@ -1,3 +1,4 @@
+from typing import Any
 import RPi.GPIO as GPIO
 
 import led_sim
@@ -14,10 +15,70 @@ import logger
 
 import led_strip
 
+class ThreadPool:
+    class TaskInfo:
+        def __init__(self, func, frame_time) -> None:
+            self.func = func
+            self.last_update = 0
+            self.frame_time = frame_time
+            self.next_update = datetime.datetime.now()
+
+        def is_ready(self):
+            now = datetime.datetime.now()
+            return self.next_update < now
+        
+        def run(self):
+            self.last_update = datetime.datetime.now()
+            self.func()
+            self.next_update = self.last_update + datetime.timedelta(seconds=self.frame_time)
+            return self.next_update
+
+    def __init__(self, **kwargs):
+        self._next_id = 0
+        self.tasks = {}
+        self.thread= None
+        self._stop = False
+        self.lock = mp.Lock()
+
+    def _run(self):
+        self._stop = False
+        while self._stop == False:
+            with self.lock:
+                for k in self.tasks:
+                    task_info = self.tasks[k]
+                    if task_info.is_ready():
+                        task_info.run()
+
+    def __start(self):
+        if self.thread is None:
+            self.thread = threading.Thread(target=self._run)
+            self.thread.start()
+        
+    def start(self, task, frame_time):
+        taks_info = ThreadPool.TaskInfo(task, frame_time)
+
+        _tid = self._next_id
+        self._next_id += 1
+        with self.lock:
+            self.tasks[_tid] = taks_info
+        self.__start()
+        return _tid
+
+    def stop(self, _tid):
+        if _tid in self.tasks:
+            with self.lock:
+                del self.tasks[_tid]
+            if len(self.tasks) == 0:
+                self._stop = True
+                self.thread.join()
+                self.thread = None
+
+
 class LedController(led_strip.LedStrip):
-    def __init__(self, refresh_rate, name = "", relay_pin = None, **kwargs):
+    def __init__(self, refresh_rate, name = "", relay_pin = None, pool=None, **kwargs):
         super().__init__(**kwargs)
         self.lock = mp.Lock()
+        self.pool = pool
         self.thread = None
         self._stop = True
         self.name = name
@@ -29,6 +90,10 @@ class LedController(led_strip.LedStrip):
         self.refs = set()
         print("__init__")
     
+    def __run(self):
+        with self.lock:
+            led_strip.LedStrip.show(self)
+
     def _run(self):
         while (self._stop == False):
             start = datetime.datetime.now()
@@ -42,15 +107,23 @@ class LedController(led_strip.LedStrip):
 
     def start(self):
         if self.thread is None:
+            print("FOO")
+            GPIO.output(self.relay_pin, GPIO.HIGH)
             self._stop = False
-            self.thread = threading.Thread(target=self._run)
-            self.thread.start()
+            if self.pool is None:
+                self.thread = threading.Thread(target=self._run)
+                self.thread.start()
+            else:
+                self.thread = self.pool.start(self.__run, self.frame_time)
 
     def stop(self):
         self._stop = True
         if self.thread is not None:
-            self.thread.join()
-            self.thread = None
+            if self.pool is None:
+                self.thread.join()
+                self.thread = None
+            else:
+                self.pool.stop(self.thread)
     
     def __getitem__(self, pos):
         with self.lock:
@@ -129,7 +202,8 @@ class Simulator:
 
 CLASS_LIST = {
     "Simulator":Simulator,
-    "LedController":LedController
+    "LedController":LedController,
+    "ThreadPool":ThreadPool
 }
 
 

@@ -12,7 +12,7 @@ class GpioInfo:
 
 class GPIO:
     D12 = GpioInfo(18, 800000, 10, False, 0)
-    D13 = GpioInfo(13, 800000, 11, False, 1)
+    D13 = GpioInfo(13, 800000, 10, False, 1)
     D18 = GpioInfo(18, 800000, 12, False, 0)
     D19 = GpioInfo(13, 800000, 13, False, 1)
 
