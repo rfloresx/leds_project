@@ -3,6 +3,37 @@
     "info" : "",
     "config" : [
         {
+            "class": "GpioInfo",
+            "name":"GPIO_10",
+            "pin" : 10,
+            "dma" : 10 
+        },
+        {
+            "class": "GpioInfo",
+            "name":"GPIO_12",
+            "pin" : 12,
+            "dma" : 10 
+        },
+        {
+            "class": "GpioInfo",
+            "name":"GPIO_10",
+            "pin" : 18,
+            "dma" : 10 
+        },
+        {
+            "class": "GpioInfo",
+            "name":"GPIO_21",
+            "pin" : 21,
+            "dma" : 10 
+        },
+        {
+            "class": "GpioInfo",
+            "name":"GPIO_13",
+            "pin" : 13,
+            "dma" : 10,
+            "channel":1
+        },
+        {
             "class": "ThreadPool",
             "name" : "LedStripPool"
         },
@@ -10,9 +41,9 @@
             "class" : "LedController",
             "name" : "TREE",
             "refresh_rate" : 60,
-            "gpio" : 12,
-            "led_count" : 263,
+            "gpio" : "ref:GPIO_12",
             "relay_pin" : 17,
+            "led_count" : 263,
             "brightness" : 255,
             "strip_type" : "RGB",
             "pool" : {
@@ -60,8 +91,8 @@
             "class" : "LedController",
             "name" : "FRONT",
             "refresh_rate" : 60,
-            "gpio" : 13,
-            "relay_pin" : 27,
+            "gpio" : "ref:GPIO_13",
+            "relay_pin":27,
             "led_count" : 250,
             "brightness" : 255,
             "strip_type" : "RGB",
@@ -169,7 +200,7 @@
         {
             "class" : "Simulator",
             "name" : "FrontLights",
-            "enable" : true,
+            "enable" : false,
             "refresh_rate":15,
             "sim" : [
                 {

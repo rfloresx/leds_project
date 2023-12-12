@@ -3,7 +3,7 @@ import numbers
 import numpy as np
 
 class GpioInfo:
-    def __init__(self, pin, freq, dma, invert, channel):
+    def __init__(self, pin, freq=800000, dma=10, invert=False, channel=0,  **kwargs):
         self.pin = pin
         self.freq = freq
         self.dma = dma

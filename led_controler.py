@@ -108,7 +108,8 @@ class LedController(led_strip.LedStrip):
     def start(self):
         if self.thread is None:
             print("FOO")
-            GPIO.output(self.relay_pin, GPIO.HIGH)
+            if self.relay_pin is not None:
+                GPIO.output(self.relay_pin, GPIO.HIGH)
             self._stop = False
             if self.pool is None:
                 self.thread = threading.Thread(target=self._run)
@@ -254,7 +255,13 @@ class LedsController:
         return ret_val
 
     def proces_config(self, config):
-        if isinstance(config, list):
+        if isinstance(config, str):
+            tokens = config.split(":")
+            if len(tokens) > 1:
+                if tokens[0] == "ref":
+                    return self.get_instance(tokens[1])
+            return config                
+        elif isinstance(config, list):
             tmp = config
             config = []
             for n in tmp:
