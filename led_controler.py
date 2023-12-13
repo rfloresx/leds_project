@@ -22,11 +22,12 @@ class ThreadPool:
             self.last_update = 0
             self.frame_time = frame_time
             self.next_update = datetime.datetime.now()
+            self.refs_count = 0
 
         def is_ready(self):
             now = datetime.datetime.now()
             return self.next_update < now
-        
+
         def run(self):
             self.last_update = datetime.datetime.now()
             self.func()
@@ -34,8 +35,7 @@ class ThreadPool:
             return self.next_update
 
     def __init__(self, **kwargs):
-        self._next_id = 0
-        self.tasks = {}
+        self.tasks = []
         self.thread= None
         self._stop = False
         self.lock = mp.Lock()
@@ -43,35 +43,57 @@ class ThreadPool:
     def _run(self):
         self._stop = False
         while self._stop == False:
+            now = datetime.datetime.now()
+            next = None
             with self.lock:
-                for k in self.tasks:
-                    task_info = self.tasks[k]
-                    if task_info.is_ready():
-                        task_info.run()
+                for task_info in self.tasks:
+                    if next is None or next.next_update > task_info.next_update:
+                        next = task_info
+            if next is None:
+                self._stop = True
+                raise RuntimeError("Missing Task")
+            if now < next.next_update:
+                delta = (next.next_update - now).total_seconds()
+                if delta > 0:
+                    time.sleep(delta)
+            next.run()
 
     def __start(self):
         if self.thread is None:
             self.thread = threading.Thread(target=self._run)
             self.thread.start()
-        
-    def start(self, task, frame_time):
-        taks_info = ThreadPool.TaskInfo(task, frame_time)
 
-        _tid = self._next_id
-        self._next_id += 1
+    def get_task_info(self, task):
         with self.lock:
-            self.tasks[_tid] = taks_info
-        self.__start()
-        return _tid
+            for t in self.tasks:
+                if t.func == task:
+                    return t
+        return None
 
-    def stop(self, _tid):
-        if _tid in self.tasks:
+    def start(self, task, frame_time):
+        task_info = self.get_task_info(task)
+        if task_info is None:
+            task_info = ThreadPool.TaskInfo(task, frame_time)
             with self.lock:
-                del self.tasks[_tid]
-            if len(self.tasks) == 0:
-                self._stop = True
-                self.thread.join()
-                self.thread = None
+                self.tasks.append(task_info)
+        if frame_time < task_info.frame_time:
+            task_info.frame_time = frame_time
+        task_info.refs_count += 1
+        self.__start()
+        return task
+
+    def stop(self, task):
+        with self.lock:
+            for t in self.tasks:
+                if t.func == task:
+                    t.refs_count -= 1
+                    if  t.refs_count <= 0:
+                        self.tasks.remove(t)                
+                    break
+        if len(self.tasks) == 0:
+            self._stop = True
+            self.thread.join()
+            self.thread = None
 
 
 class LedController(led_strip.LedStrip):
@@ -88,7 +110,6 @@ class LedController(led_strip.LedStrip):
         if self.relay_pin is not None:
             GPIO.setup(self.relay_pin, GPIO.OUT)
         self.refs = set()
-        print("__init__")
     
     def __run(self):
         with self.lock:
@@ -107,7 +128,6 @@ class LedController(led_strip.LedStrip):
 
     def start(self):
         if self.thread is None:
-            print("FOO")
             if self.relay_pin is not None:
                 GPIO.output(self.relay_pin, GPIO.HIGH)
             self._stop = False
@@ -115,8 +135,11 @@ class LedController(led_strip.LedStrip):
                 self.thread = threading.Thread(target=self._run)
                 self.thread.start()
             else:
-                self.thread = self.pool.start(self.__run, self.frame_time)
-
+                try:
+                    _func = self.strip._leds.show
+                except:
+                    _func = self.__run
+                self.thread = self.pool.start(_func, self.frame_time)
     def stop(self):
         self._stop = True
         if self.thread is not None:
@@ -150,12 +173,10 @@ class LedController(led_strip.LedStrip):
             return super().setBrightness(brightness)
 
     def activate(self, owner):
-        print("activate")
         self.refs.add(owner)
         self.start()
 
     def release(self, owner):
-        print("release")
         self.refs.remove(owner)
         if len(self.refs) == 0:
             self.stop()
@@ -292,7 +313,6 @@ class LedsController:
         #     # if obj.name is not None:
     
     def run(self):
-        print("RUN")
         self.exit = False
         
         for sim in self.sims:

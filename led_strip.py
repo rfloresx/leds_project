@@ -1,4 +1,5 @@
-from rpi_ws281x import PixelStrip, ws
+# from rpi_ws281x import PixelStrip, ws
+from rpi_ws281x_ext import PixelStrip, ws
 import numbers
 import numpy as np
 
@@ -126,7 +127,6 @@ class LedStripSection:
         self.start = _slice.start if _slice.start is not None else 0
         self.stop = _slice.stop if _slice.stop is not None else len(self.led_strip)
         self.step = _slice.step if _slice.step is not None else 1
-        print(_slice)
         self.len = len(range(self.start, self.stop, self.step))
 
     def __getitem__(self, pos):
@@ -196,7 +196,6 @@ def build_slice(v = None, start = None, stop = None, step = None, **kwargs):
             stop = v[1]
         if v_len > 0:
             start = v[0]
-    print(start, stop, step)
     return slice(start, stop, step)
 
 CLASS_LIST = {

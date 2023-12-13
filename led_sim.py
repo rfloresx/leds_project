@@ -2,7 +2,7 @@ import palette
 import numpy as np 
 import random
 import led_strip
-
+import logger
 
 class SimBase:
     def __init__(self, pixels, palette, **kwargs):
@@ -10,8 +10,8 @@ class SimBase:
         self.pixels = pixels
         try:
             self.pixels.activate(self)
-        except AttributeError:
-            pass
+        except AttributeError as e:
+            logger.error(e)
         
         self.palette = palette
         self.leds_count = kwargs.get('leds_count', len(self.pixels))
@@ -20,8 +20,8 @@ class SimBase:
     def __del__(self):
         try:
             self.pixels.release(self)
-        except AttributeError:
-            pass
+        except AttributeError as e:
+            logger.error(e)
 
     def update(self):
         self.pixels[:] = self.get_leds()
@@ -105,7 +105,6 @@ class FadeSim(HeatSim):
             self.brightness = 1.0
             self.dir = -1
         val = int(255*self.brightness)
-        print(f"val {val}")
         self.pixels.fill(self.color)
         self.pixels.setBrightness(int(255*self.brightness))
         self.pixels.show()

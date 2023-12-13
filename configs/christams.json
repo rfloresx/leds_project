@@ -161,8 +161,8 @@
                         "name" : "WHITE"
                     },
                     "min_heat" : 20,
-                    "cold_down": -10,
-                    "sparks" : 3,
+                    "cold_down": -2.5,
+                    "sparks" : 0.75,
                     "spark" : 255
                 },
                 {
@@ -176,7 +176,7 @@
                         "class" : "ref",
                         "name" : "WHITE"
                     },
-                    "min_heat" : 10,
+                    "min_heat" : 20,
                     "cold_down": -10,
                     "sparks" : 0.5,
                     "spark" : 255
@@ -200,8 +200,8 @@
         {
             "class" : "Simulator",
             "name" : "FrontLights",
-            "enable" : false,
-            "refresh_rate":15,
+            "enable" : true,
+            "refresh_rate":30,
             "sim" : [
                 {
                     "class" : "FireSim",
@@ -214,9 +214,9 @@
                         "class" : "ref",
                         "name" : "WHITE"
                     },
-                    "min_heat" : 10,
-                    "cold_down": -3,
-                    "sparks" : 10
+                    "min_heat" : 20,
+                    "cold_down": -5,
+                    "sparks" : 1.5
                 }
             ]
         }

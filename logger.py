@@ -1,6 +1,7 @@
 import logging
 from systemd.journal import JournalHandler
 import sys
+import traceback
 
 # log = logging.getLogger('led_conn')
 # log.addHandler(JournalHandler())
@@ -34,6 +35,8 @@ def info(msg, *args, **kwargs):
     Logger().log.debug(msg, *args, **kwargs)
 
 def error(msg, *args, **kwargs):
+    if isinstance(msg, Exception):
+        Logger().log.error(traceback.format_exc())
     Logger().log.error(msg, *args, **kwargs)
 
 def exception(msg, *args, **kwargs):
