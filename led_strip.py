@@ -12,10 +12,12 @@ class GpioInfo:
         self.channel = channel
 
 class GPIO:
-    D12 = GpioInfo(18, 800000, 10, False, 0)
-    D13 = GpioInfo(13, 800000, 10, False, 1)
-    D18 = GpioInfo(18, 800000, 12, False, 0)
-    D19 = GpioInfo(13, 800000, 13, False, 1)
+    D10 = GpioInfo(10)
+    D12 = GpioInfo(12)
+    D13 = GpioInfo(13, 1)
+    D18 = GpioInfo(18)
+    D19 = GpioInfo(13, 1)
+    D21 = GpioInfo(21)
 
 RGB = ws.WS2811_STRIP_RGB
 GRB = ws.WS2811_STRIP_GRB
@@ -123,11 +125,18 @@ class LedStripSection:
 
     def __init__(self, led_strip, _slice=slice(None,None,None), **kwargs):
         self.led_strip = led_strip
-        self._slice = _slice
-        self.start = _slice.start if _slice.start is not None else 0
-        self.stop = _slice.stop if _slice.stop is not None else len(self.led_strip)
-        self.step = _slice.step if _slice.step is not None else 1
-        self.len = len(range(self.start, self.stop, self.step))
+        if isinstance(_slice, (tuple,list)):
+            self.start = _slice[0] if len(_slice) > 0 else 0
+            self.stop = _slice[1] if len(_slice) > 1 else len(self.led_strip)
+            self.step = _slice[2] if len(_slice) > 2 else 1
+            self._slice = slice(self.start,self.stop,self.step)
+            self.len = len(range(self.start, self.stop, self.step))
+        else:
+            self._slice = _slice
+            self.start = _slice.start if _slice.start is not None else 0
+            self.stop = _slice.stop if _slice.stop is not None else len(self.led_strip)
+            self.step = _slice.step if _slice.step is not None else 1
+            self.len = len(range(self.start, self.stop, self.step))
 
     def __getitem__(self, pos):
         if not isinstance(pos, slice):

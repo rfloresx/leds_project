@@ -19,7 +19,7 @@ class Logger(object):
         if(self.__initialized): return
         self.log = logging.getLogger('led_conn')
         self.log.addHandler(JournalHandler())
-        self.log.setLevel(logging.INFO)
+        self.log.setLevel(logging.DEBUG)
 
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(logging.DEBUG)

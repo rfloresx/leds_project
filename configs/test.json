@@ -1,0 +1,126 @@
+{
+    "name" : "Christmas Lights",
+    "info" : "",
+    "config" : [
+        {
+            "class":"ThreadPool",
+            "name":"LedStripPool"
+        },
+        {
+            "class":"LedController",
+            "name":"StripA",
+            "refresh_rate":5,
+            "gpio": 12,
+            "pool":"ref:LedStripPool",
+            "led_count":50,
+            "strip_type":"RGB"
+        },
+        {
+            "class":"LedController",
+            "name":"StripB",
+            "refresh_rate":60,
+            "gpio": 12,
+            "pool":"ref:LedStripPool",
+            "led_count":50,
+            "strip_type":"RGB"
+        },
+        {
+            "class":"Simulator",
+            "name" : "TestA",
+            "enable":true,
+            "refresh_rate" : 15,
+            "sim" : [
+                {
+                    "class":"FireSim",
+                    "pixels" : {
+                        "class" : "LedStripSection",
+                        "led_strip" : "ref:StripA",
+                        "_slice" : [0,50,5]
+                    },
+                    "palette" : {
+                        "class":"Palette",
+                        "colors": [255,0,0],
+                        "color_correction" : [255,120,120],
+                        "res":255
+                    },
+                    "min_heat" : 20,
+                    "cold_down" : -2.5,
+                    "sparks" : 0.75,
+                    "spark" : 255
+                },
+                {
+                    "class":"FireSim",
+                    "pixels" : {
+                        "class" : "LedStripSection",
+                        "led_strip" : "ref:StripA",
+                        "_slice" : [1,50,5]
+                    },
+                    "palette" : {
+                        "class":"Palette",
+                        "colors": [0,0,255],
+                        "color_correction" : [255,120,120],
+                        "res":255
+                    },
+                    "min_heat" : 20,
+                    "cold_down" : -2.5,
+                    "sparks" : 0.75,
+                    "spark" : 255
+                },
+                {
+                    "class":"FireSim",
+                    "pixels" : {
+                        "class" : "LedStripSection",
+                        "led_strip" : "ref:StripA",
+                        "_slice" : [2,50,5]
+                    },
+                    "palette" : {
+                        "class":"Palette",
+                        "colors": [0,255,0],
+                        "color_correction" : [255,120,120],
+                        "res":255
+                    },
+                    "min_heat" : 20,
+                    "cold_down" : -2.5,
+                    "sparks" : 0.75,
+                    "spark" : 255
+                },
+                {
+                    "class":"FireSim",
+                    "pixels" : {
+                        "class" : "LedStripSection",
+                        "led_strip" : "ref:StripA",
+                        "_slice" : [3,50,5]
+                    },
+                    "palette" : {
+                        "class":"Palette",
+                        "colors": [255,255,0],
+                        "color_correction" : [255,120,120],
+                        "res":255
+                    },
+                    "min_heat" : 20,
+                    "cold_down" : -2.5,
+                    "sparks" : 0.75,
+                    "spark" : 255
+                },
+                {
+                    "class":"FireSim",
+                    "pixels" : {
+                        "class" : "LedStripSection",
+                        "led_strip" : "ref:StripA",
+                        "_slice" : [4,50,5]
+                    },
+                    "palette" : {
+                        "class":"Palette",
+                        "colors": [255,0,255],
+                        "color_correction" : [255,120,120],
+                        "res":255
+                    },
+                    "min_heat" : 20,
+                    "cold_down" : -2.5,
+                    "sparks" : 0.75,
+                    "spark" : 255
+                }
+            ]
+        }
+    ]
+}

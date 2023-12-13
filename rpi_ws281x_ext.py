@@ -94,6 +94,10 @@ class Ws2811:
     def __cleanup(self):
         # Clean up memory used by the library when not needed anymore.
         if self._leds is not None:
+            for i in range(2):
+                ch = ws.ws2811_channel_get(self._leds, i)
+                ws.ws2811_channel_t_brightness_set(ch, 0)
+                ws.ws2811_render(self._leds)
             ws.ws2811_fini(self._leds)
             ws.delete_ws2811_t(self._leds)
             self._leds = None

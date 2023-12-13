@@ -1,6 +1,5 @@
-from typing import Any
 import RPi.GPIO as GPIO
-
+import sys
 import led_sim
 import palette
 
@@ -14,6 +13,7 @@ import datetime
 import logger
 
 import led_strip
+import signal
 
 class ThreadPool:
     class TaskInfo:
@@ -92,9 +92,15 @@ class ThreadPool:
                     break
         if len(self.tasks) == 0:
             self._stop = True
+            if self.thread is not None:
+                self.thread.join()
+                self.thread = None
+        
+    def stop_all(self):
+        if self.thread is not None:
+            self._stop = True
             self.thread.join()
             self.thread = None
-
 
 class LedController(led_strip.LedStrip):
     def __init__(self, refresh_rate, name = "", relay_pin = None, pool=None, **kwargs):
@@ -237,13 +243,21 @@ class LedsController:
         **palette.CLASS_LIST
     }
 
+    def __signal(self, *args):
+        self.kill_now = True
+
     def __init__(self):
+        self.kill_now = False
+        signal.signal(signal.SIGINT, self.__signal)
+        signal.signal(signal.SIGTERM, self.__signal)
+
         self.name = ""
         self.info = ""
 
         self.refs = {}
         self.exit = False
         self.sims = []
+        self.pools = []
         self.class_list = {
             **LedsController.CLASS_LIST,
             "ref" : self.get_instance
@@ -300,6 +314,8 @@ class LedsController:
             obj = self.load_class(item)
             if isinstance(obj, Simulator):
                 self.sims.append(obj)
+            elif isinstance(obj, ThreadPool):
+                self.pools.append(obj)
 
         # self.pixels = {}
         # for pixels in config["NeoPixels"]:
@@ -319,19 +335,18 @@ class LedsController:
             if sim.enable == True:
                 sim.start()
         
-        while self.exit == False:
+        while self.exit == False and self.kill_now == False:
             try:
                 time.sleep(1)
-            except:
-                logger.exception("Err")
+            except KeyboardInterrupt:
+                logger.info("Exit")
                 self.exit = True
         
         for sim in self.sims:
             sim.stop()
         
-    
-
-        
+        for pool in self.pools:
+            pool.stop_all()
 
 
 g_parser = argparse.ArgumentParser(prog='LED Controller')
@@ -348,4 +363,4 @@ if __name__ == "__main__":
     if config is not None:
         cont.load_config(config)
         cont.run()
-
+    sys.exit(0)
