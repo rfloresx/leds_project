@@ -3,40 +3,10 @@
 # Modified tu support multiple GPIO at the same time
 import _rpi_ws281x as ws
 import atexit
+from util.singleton import Singleton
+from util.config import DataClass
 
-class RGBW(int):
-    def __new__(self, r, g=None, b=None, w=None):
-        if (g, b, w) == (None, None, None):
-            return int.__new__(self, r)
-        else:
-            if w is None:
-                w = 0
-            return int.__new__(self, (w << 24) | (r << 16) | (g << 8) | b)
-
-    @property
-    def r(self):
-        return (self >> 16) & 0xff
-
-    @property
-    def g(self):
-        return (self >> 8) & 0xff
-
-    @property
-    def b(self):
-        return (self) & 0xff
-
-    @property
-    def w(self):
-        return (self >> 24) & 0xff
-
-
-def Color(red, green, blue, white=0):
-    """Convert the provided red, green, blue color to a 24-bit color value.
-    Each color component should be a value 0-255 where 0 is the lowest intensity
-    and 255 is the highest intensity.
-    """
-    return RGBW(red, green, blue, white)
-
+@Singleton
 class Ws2811:
     class ChannelInfo:
         def __init__(self, num, pin, invert, brightness, gamma, strip_type) -> None:
@@ -46,13 +16,6 @@ class Ws2811:
             self.brightness = brightness
             self.gamma = gamma
             self.strip_type = strip_type
-
-    __instance = None
-
-    def instance():
-        if Ws2811.__instance is None:
-            Ws2811.__instance = Ws2811()
-        return Ws2811.__instance
     
     def __str__(self):
         return f"{self.freq_hz}, {self.dma}, {self._leds}, {self.channels}"
@@ -69,7 +32,7 @@ class Ws2811:
             self.freq_hz = freq_hz
             self.dma = dma
         elif self.freq_hz != freq_hz or self.dma != dma:
-            raise RuntimeError(f"Ws2811 already initialized with {self.freq_hz}:{self.dma}")
+            raise RuntimeError(f"Ws2811 already initialized with {self.freq_hz}:{self.dma} {freq_hz}:{dma}")
 
     def init(self):
         if self._leds is None:
@@ -148,11 +111,11 @@ class Ws2811:
         if resp != 0:
             str_resp = ws.ws2811_get_return_t_str(resp)
             raise RuntimeError('ws2811_render failed with code {0} ({1})'.format(resp, str_resp))
-    
 
+@DataClass(name="PixelStrip")
 class PixelStrip:
     def __init__(self, num, pin, freq_hz=800000, dma=10, invert=False,
-            brightness=255, channel=0, strip_type=None, gamma=None):
+            brightness=255, channel=0, strip_type=None, gamma=None, **kwargs):
         """Class to represent a SK6812/WS281x LED display.  Num should be the
         number of pixels in the display, and pin should be the GPIO pin connected
         to the display signal line (must be a PWM pin like 18!).  Optional
@@ -161,7 +124,7 @@ class PixelStrip:
         specifying if the signal line should be inverted (default False), and
         channel, the PWM channel to use (defaults to 0).
         """
-        self._leds = Ws2811.instance()
+        self._leds = Ws2811()
         self._leds.set_freq_dma(freq_hz, dma)
         self._leds.configure_channel(num, pin, channel, invert, brightness, gamma, strip_type)
         self._leds.begin()
@@ -207,18 +170,6 @@ class PixelStrip:
     def show(self):
         self._leds.show()
 
-    def setPixelColor(self, n, color):
-        """Set LED at position n to the provided 24-bit color value (in RGB order).
-        """
-        self[n] = color
-
-    def setPixelColorRGB(self, n, red, green, blue, white=0):
-        """Set LED at position n to the provided red, green, and blue color.
-        Each color component should be a value from 0 to 255 (where 0 is the
-        lowest intensity and 255 is the highest intensity).
-        """
-        self.setPixelColor(n, Color(red, green, blue, white))
-
     def getBrightness(self):
         return ws.ws2811_channel_t_brightness_get(self._channel)
 
@@ -228,26 +179,14 @@ class PixelStrip:
         """
         ws.ws2811_channel_t_brightness_set(self._channel, brightness)
 
-    def getPixels(self):
-        """Return an object which allows access to the LED display data as if
-        it were a sequence of 24-bit RGB values.
-        """
-        return self[:]
+@DataClass(name="StripType")
+def get_strip_type(strip_type="RGB", **kwargs):
+    match strip_type:
+        case "RGB":
+            return ws.WS2811_STRIP_RGB
+        case "GRB":
+            return ws.WS2811_STRIP_GRB
+        case _:
+            pass
+    return ws.WS2811_STRIP_RGB
 
-    def numPixels(self):
-        """Return the number of pixels in the display."""
-        return len(self)
-
-    def getPixelColor(self, n):
-        """Get the 24-bit RGB color value for the LED at position n."""
-        return self[n]
-
-    def getPixelColorRGB(self, n):
-        return RGBW(self[n])
-
-    def getPixelColorRGBW(self, n):
-        return RGBW(self[n])
-
-# Shim for back-compatibility
-class Adafruit_NeoPixel(PixelStrip):
-    pass

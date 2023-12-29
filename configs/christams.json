@@ -3,217 +3,127 @@
     "info" : "",
     "config" : [
         {
-            "class": "GpioInfo",
-            "name":"GPIO_10",
-            "pin" : 10,
-            "dma" : 10 
-        },
-        {
-            "class": "GpioInfo",
-            "name":"GPIO_12",
-            "pin" : 12,
-            "dma" : 10 
-        },
-        {
-            "class": "GpioInfo",
-            "name":"GPIO_10",
-            "pin" : 18,
-            "dma" : 10 
-        },
-        {
-            "class": "GpioInfo",
-            "name":"GPIO_21",
-            "pin" : 21,
-            "dma" : 10 
-        },
-        {
-            "class": "GpioInfo",
-            "name":"GPIO_13",
-            "pin" : 13,
-            "dma" : 10,
-            "channel":1
+            "imports":[
+                "@import:util",
+                "@import:leds_pi",
+                "@import:effects"
+            ]
         },
         {
             "class": "ThreadPool",
             "name" : "LedStripPool"
         },
         {
-            "class" : "LedController",
-            "name" : "TREE",
-            "refresh_rate" : 60,
-            "gpio" : "ref:GPIO_12",
-            "relay_pin" : 17,
-            "led_count" : 263,
-            "brightness" : 255,
-            "strip_type" : "RGB",
-            "pool" : {
-                "class":"ref",
-                "name": "LedStripPool"
-            }
+            "Palettes":[
+                {
+                    "class" : "Palette",
+                    "name" : "BLUE_WHITE",
+                    "colors" : [[0,0,0], [255,255,255]],
+                    "color_correction" : [255, 255, 255],
+                    "res": 255
+                },
+                {
+                    "class" : "Palette",
+                    "name" : "RAINBOW",
+                    "colors" : [
+                        [255,0,0],
+                        [255,255,0],
+                        [0,255,0],
+                        [0,255,255],
+                        [0,0,255],
+                        [255,0,255],
+                        [255,0,0]
+                    ],
+                    "color_correction" : [255, 120, 120],
+                    "res": 32
+                }
+            ]
         },
         {
-            "class": "LedStripSection",
-            "name" : "TREE_LIGHTS",
-            "led_strip" : {
-                "class" : "ref",
-                "name" : "TREE"
-            },
-            "_slice" : {
-                "class" : "slice",
-                "v" : [0, 250, 1]
-            }
-        },
-        {
-            "class": "LedStripSection",
-            "name" : "TREE_STAR_CENTER",
-            "led_strip" : {
-                "class" : "ref",
-                "name" : "TREE"
-            },
-            "_slice" : {
-                "class" : "slice",
-                "v" : [250, 257, 1]
-            }
-        },
-        {
-            "class": "LedStripSection",
-            "name" : "TREE_STAR_TIPS",
-            "led_strip" : {
-                "class" : "ref",
-                "name" : "TREE"
-            },
-            "_slice" : {
-                "class" : "slice",
-                "v" : [257, 263, 1]
-            }
-        },
-        {
-            "class" : "LedController",
-            "name" : "FRONT",
-            "refresh_rate" : 60,
-            "gpio" : "ref:GPIO_13",
-            "relay_pin":27,
-            "led_count" : 250,
-            "brightness" : 255,
-            "strip_type" : "RGB",
-            "pool" : {
-                "class":"ref",
-                "name": "LedStripPool"
-            }
-        },
-        {
-            "class": "LedStripSection",
-            "name" : "FRONT_LIGHTS",
-            "led_strip" : {
-                "class" : "ref",
-                "name" : "FRONT"
-            },
-            "_slice" : {
-                "class" : "slice",
-                "v" : [0, 250, 1]
-            }
-        },
-        {
-            "class" : "",
-            "info" : "Color Palettes"
-        },
-        {
-            "class" : "Palette",
-            "name" : "WHITE",
-            "colors" : [[0,0,0], [255,255,255]],
-            "color_correction" : [255, 255, 255],
-            "res": 255
-        },
-        {
-            "class" : "Palette",
-            "name" : "RAINBOW",
-            "colors" : [
-                [255,0,0],
-                [255,255,0],
-                [0,255,0],
-                [0,255,255],
-                [0,0,255],
-                [255,0,255],
-                [255,0,0]
-            ],
-            "color_correction" : [255, 120, 120],
-            "res": 32
-        },
-        {
-            "class":"",
-            "info":""
-        },
-        {
-            "class" : "Simulator",
+            "class" : "EffectsUpdater",
             "name" : "ChristmasTree",
             "enable" : true,
             "refresh_rate":60,
-            "sim" : [
+            "LedController":{
+                "class" : "LedController",
+                "name" : "TREE",
+                "refresh_rate" : 60,
+                "gpio" : 12,
+                "relay_pin" : 17,
+                "led_count" : 263,
+                "brightness" : 255,
+                "strip_type" : "RGB",
+                "pool" : "@ref:LedStripPool"
+            },
+            "effects" : [
                 {
-                    "class" : "FireSim",
-                    "name":"Sim_ChristmasTree_Lights",
+                    "class" : "Sparks",
+                    "name":"ChristmasTree_Lights_Sparks",
                     "pixels" : {
-                        "class" : "ref",
-                        "name" : "TREE_LIGHTS"
+                        "class":"LedStripSection",
+                        "led_strip":"@ref:TREE",
+                        "_slice" : [0, -13, 1]
                     },
-                    "palette" : {
-                        "class" : "ref",
-                        "name" : "WHITE"
-                    },
+                    "palette" : "@ref:BLUE_WHITE",
                     "min_heat" : 20,
                     "cold_down": -2.5,
                     "sparks" : 0.75,
                     "spark" : 255
                 },
                 {
-                    "class" : "FireSim",
+                    "class" : "Sparks",
                     "name":"Sim_ChristmasTree_StartCenter",
                     "pixels" : {
-                        "class" : "ref",
-                        "name" : "TREE_STAR_CENTER"
+                        "class":"LedStripSection",
+                        "led_strip":"@ref:TREE",
+                        "_slice" : [-13, -6, 1]
                     },
-                    "palette" : {
-                        "class" : "ref",
-                        "name" : "WHITE"
-                    },
+                    "palette" : "@ref:BLUE_WHITE",
                     "min_heat" : 20,
                     "cold_down": -10,
                     "sparks" : 0.5,
                     "spark" : 255
                 },
                 {
-                    "class" : "RollSim",
+                    "class" : "Roll",
                     "name" : "Sim_ChristmasTree_StartTips",
                     "pixels" : {
-                        "class" : "ref",
-                        "name" : "TREE_STAR_TIPS"
+                        "class":"LedStripSection",
+                        "led_strip":"@ref:TREE",
+                        "_slice" : [-6, null, 1]
                     },
-                    "palette" : {
-                        "class" : "ref",
-                        "name" : "RAINBOW"
-                    },
+                    "palette" : "@ref:RAINBOW",
                     "min_heat" : 0,
                     "speed" : 1
                 }
             ]
         },
         {
-            "class" : "Simulator",
+            "class" : "EffectsUpdater",
             "name" : "FrontLights",
             "enable" : true,
             "refresh_rate":30,
-            "sim" : [
+            "LedController":{
+                "class" : "LedController",
+                "name" : "FRONT",
+                "refresh_rate" : 60,
+                "gpio" : 13,
+                "relay_pin":27,
+                "led_count" : 50,
+                "brightness" : 255,
+                "strip_type" : "RGB",
+                "pool" : "@ref:LedStripPool"
+            },
+            "effects" : [
                 {
-                    "class" : "FireSim",
+                    "class" : "Sparks",
                     "name":"Sim_FrontLights",
                     "pixels" : {
-                        "class" : "ref",
-                        "name" : "FRONT_LIGHTS"
+                        "class":"LedStripSection",
+                        "led_strip":"@ref:FRONT",
+                        "_slice" : [-1,-6,-1]
                     },
-                    "palette" : {
-                        "class" : "ref",
-                        "name" : "WHITE"
-                    },
+                    "palette" : "@ref:BLUE_WHITE",
                     "min_heat" : 20,
                     "cold_down": -5,
                     "sparks" : 1.5

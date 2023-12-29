@@ -3,6 +3,13 @@
     "info" : "",
     "config" : [
         {
+            "imports":[
+                "@import:util",
+                "@import:leds_pi",
+                "@import:effects"
+            ]
+        },
+        {
             "class":"ThreadPool",
             "name":"LedStripPool"
         },
@@ -11,7 +18,7 @@
             "name":"StripA",
             "refresh_rate":5,
             "gpio": 12,
-            "pool":"ref:LedStripPool",
+            "pool":"@ref:LedStripPool",
             "led_count":50,
             "strip_type":"RGB"
         },
@@ -20,21 +27,21 @@
             "name":"StripB",
             "refresh_rate":60,
             "gpio": 12,
-            "pool":"ref:LedStripPool",
+            "pool":"@ref:LedStripPool",
             "led_count":50,
             "strip_type":"RGB"
         },
         {
-            "class":"Simulator",
+            "class":"EffectsUpdater",
             "name" : "TestA",
             "enable":true,
             "refresh_rate" : 15,
-            "sim" : [
+            "effects" : [
                 {
-                    "class":"FireSim",
+                    "class":"Sparks",
                     "pixels" : {
                         "class" : "LedStripSection",
-                        "led_strip" : "ref:StripA",
+                        "led_strip" : "@ref:StripA",
                         "_slice" : [0,50,5]
                     },
                     "palette" : {
@@ -49,10 +56,10 @@
                     "spark" : 255
                 },
                 {
-                    "class":"FireSim",
+                    "class":"Sparks",
                     "pixels" : {
                         "class" : "LedStripSection",
-                        "led_strip" : "ref:StripA",
+                        "led_strip" : "@ref:StripA",
                         "_slice" : [1,50,5]
                     },
                     "palette" : {
@@ -67,10 +74,10 @@
                     "spark" : 255
                 },
                 {
-                    "class":"FireSim",
+                    "class":"Sparks",
                     "pixels" : {
                         "class" : "LedStripSection",
-                        "led_strip" : "ref:StripA",
+                        "led_strip" : "@ref:StripA",
                         "_slice" : [2,50,5]
                     },
                     "palette" : {
@@ -85,10 +92,10 @@
                     "spark" : 255
                 },
                 {
-                    "class":"FireSim",
+                    "class":"Sparks",
                     "pixels" : {
                         "class" : "LedStripSection",
-                        "led_strip" : "ref:StripA",
+                        "led_strip" : "@ref:StripA",
                         "_slice" : [3,50,5]
                     },
                     "palette" : {
@@ -103,10 +110,10 @@
                     "spark" : 255
                 },
                 {
-                    "class":"FireSim",
+                    "class":"Sparks",
                     "pixels" : {
                         "class" : "LedStripSection",
-                        "led_strip" : "ref:StripA",
+                        "led_strip" : "@ref:StripA",
                         "_slice" : [4,50,5]
                     },
                     "palette" : {

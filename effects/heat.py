@@ -1,37 +1,10 @@
-import palette
-import numpy as np 
+import numpy as np
 import random
-import led_strip
-import logger
 
-class SimBase:
-    def __init__(self, pixels, palette, **kwargs):
-        self.rng = np.random.default_rng()
-        self.pixels = pixels
-        try:
-            self.pixels.activate(self)
-        except AttributeError as e:
-            logger.error(e)
-        
-        self.palette = palette
-        self.leds_count = kwargs.get('leds_count', len(self.pixels))
-        self.leds = np.zeros([self.leds_count,3], dtype = np.int16)
+from util.config import DataClass
+from effects.base import SimBase
 
-    def __del__(self):
-        try:
-            self.pixels.release(self)
-        except AttributeError as e:
-            logger.error(e)
-
-    def update(self):
-        self.pixels[:] = self.get_leds()
-        self.pixels.show()
-
-    def get_leds(self):
-        self.leds = self.palette.correct_color(self.leds)
-        return self.leds
-    
-class HeatSim(SimBase):
+class HeatBase(SimBase):
     def __init__(self, min_heat = 0, max_heat = None, **kwargs):
         super().__init__(**kwargs)
         self.min_heat = min_heat
@@ -45,8 +18,9 @@ class HeatSim(SimBase):
         self.heat = np.clip(self.heat, self.min_heat, self.max_heat)
         self.leds = self.palette.interp(self.heat)
         return super().get_leds()
-
-class FireSim(HeatSim):
+    
+@DataClass(name="Sparks")
+class Sparks(HeatBase):
     def __init__(self, cold_down = 0, sparks = 3, spark = None, **kwargs):
         super().__init__(**kwargs)
         self.cold_down = cold_down
@@ -69,7 +43,8 @@ class FireSim(HeatSim):
                 self.heat[j] = self.spark
             self.sparks_val = 0
 
-class RollSim(HeatSim):
+@DataClass(name="Roll")
+class Roll(HeatBase):
     def __init__(self, speed = 1, **kwargs):
         super().__init__(**kwargs)
         self.speed = speed
@@ -85,7 +60,8 @@ class RollSim(HeatSim):
         self.heat = np.roll(self.heat, 1)
         self.heat[0] = self.current
 
-class FadeSim(HeatSim):
+@DataClass(name="Fade")
+class Fade(HeatBase):
     def __init__(self, color = (255, 255, 255), **kwargs):
         super().__init__(**kwargs)
         self.color = color
@@ -113,43 +89,3 @@ class FadeSim(HeatSim):
         # self.
         return super().get_color()
 
-
-CLASS_LIST = {
-    "HeatSim":HeatSim,
-    "FireSim":FireSim,
-    "RollSim":RollSim,
-    "FadeSim":FadeSim
-}
-
-
-def main():
-    option = 'fade'
-    color_correction = (255, 255, 255)
-    # color_correction = (255, 120, 120)
-
-    leds_count = 1000
-    res = 255
-    # p = palette.Palette.from_hex("#FF0000")
-    # plt = palette.Palette(palette.Palettes.ALL, color_correction = (255, 120, 120), res=res)
-    # p = palette.Palette([(255,0,0), (255, 255,0)], color_correction = (255, 120, 120))
-    plt = palette.Palette([(0,0,0), (250, 250,255)], color_correction = color_correction, res = res)
-
-    pixels = led_strip.LedStrip(led_strip.GPIO.D18, leds_count, brightness=125, strip_type=led_strip.RGB)
-    match option:
-        case 'sparks':
-            sim = FireSim(pixels = pixels, palette=plt, cold_down=-3, sparks=1, min_heat=15)
-        case 'roll':
-            sim =  RollSim(pixels = pixels, palette=plt, speed=1)
-        case 'fade':
-            sim =  FadeSim(pixels = pixels, palette=plt, speed=1)
-        case _:
-            sim = None
-    if sim is not None:
-        while True:
-            sim.update()
-            # pixels[:] = sim.get_leds()
-            # pixels.show()
-            # time.sleep(.05)
-
-if __name__ == "__main__":
-    main()

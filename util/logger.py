@@ -3,10 +3,6 @@ from systemd.journal import JournalHandler
 import sys
 import traceback
 
-# log = logging.getLogger('led_conn')
-# log.addHandler(JournalHandler())
-# log.setLevel(logging.INFO)
-
 class Logger(object):
     __instance = None
     def __new__(cls):
